@@ -1,19 +1,25 @@
 import java.util.ArrayList;
 import java.util.List;
 
+// Train Consist Management App - UC20
 public class TrainConsistManagementApp {
 
     // Inner Bogie class
     static class Bogie {
         String name;
+        String type;
         int capacity;
 
-        Bogie(String name, int capacity) {
+        Bogie(String name, String type, int capacity) {
             this.name = name;
+            this.type = type;
             this.capacity = capacity;
         }
+
+        return null; // Not found
     }
 
+    // Main method
     public static void main(String[] args) {
 
         System.out.println("==================================================");
@@ -33,7 +39,7 @@ public class TrainConsistManagementApp {
         // Display all bogies and their capacities
         System.out.println("Bogies in Train:");
         for (Bogie b : bogies) {
-            System.out.println("  " + b.name + " → Capacity: " + b.capacity);
+            System.out.println("  " + b.name + " [" + b.type + "] → Capacity: " + b.capacity);
         }
 
         // Use Stream reduce() to calculate total seats
@@ -52,6 +58,6 @@ public class TrainConsistManagementApp {
 
         System.out.println("Total Seats (using mapToInt): " + totalSeatsAlt);
 
-        System.out.println("\nProgram continues...");
+        System.out.println("\nProgram continues after handling exceptions...");
     }
 }

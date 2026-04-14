@@ -4,7 +4,8 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TrainConsistManagementAppTest {
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
     // Reuse Bogie class
     static class Bogie {
