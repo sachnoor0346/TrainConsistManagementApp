@@ -1,50 +1,58 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class TrainConsistManagementApp {
 
-    // Reusing Bogie model from UC7
-    static class Bogie {
-        String name;
-        int capacity;
+    // Train ID pattern: Must start with "TR" followed by exactly 5 digits
+    // Example valid: TR12345, TR00001
+    private static final Pattern TRAIN_ID_PATTERN = Pattern.compile("^TR\\d{5}$");
 
-        Bogie(String name, int capacity) {
-            this.name = name;
-            this.capacity = capacity;
+    // Cargo Code pattern: Must start with "CGO-" followed by 3 uppercase letters and 2 digits
+    // Example valid: CGO-ABC12, CGO-XYZ99
+    private static final Pattern CARGO_CODE_PATTERN = Pattern.compile("^CGO-[A-Z]{3}\\d{2}$");
+
+    public static boolean validateTrainId(String trainId) {
+        if (trainId == null || trainId.isEmpty()) {
+            return false;
         }
+        Matcher matcher = TRAIN_ID_PATTERN.matcher(trainId);
+        return matcher.matches();
+    }
+
+    public static boolean validateCargoCode(String cargoCode) {
+        if (cargoCode == null || cargoCode.isEmpty()) {
+            return false;
+        }
+        Matcher matcher = CARGO_CODE_PATTERN.matcher(cargoCode);
+        return matcher.matches();
     }
 
     public static void main(String[] args) {
 
         System.out.println("==================================================");
-        System.out.println(" UC8 - Filter Passenger Bogies Using Streams ");
+        System.out.println(" UC11 - Validate Train ID & Cargo Codes ");
         System.out.println("==================================================\n");
 
-        // Create list of passenger bogies (same style as UC7)
-        List<Bogie> bogies = new ArrayList<>();
+        // Test Train IDs
+        String[] trainIds = {"TR12345", "TR00001", "TX12345", "TR1234", "TR123456", "tr12345", ""};
 
-        bogies.add(new Bogie("Sleeper", 72));
-        bogies.add(new Bogie("AC Chair", 60));
-        bogies.add(new Bogie("First Class", 24));
-        bogies.add(new Bogie("Second Sitting", 90));
-        bogies.add(new Bogie("Third AC", 64));
-
-        // Display all bogies
-        System.out.println("All Bogies:");
-        for (Bogie b : bogies) {
-            System.out.println("  " + b.name + " → Capacity: " + b.capacity);
+        System.out.println("Train ID Validation:");
+        System.out.println("  Pattern: TR followed by exactly 5 digits\n");
+        for (String id : trainIds) {
+            String displayId = id.isEmpty() ? "(empty)" : id;
+            boolean valid = validateTrainId(id);
+            System.out.println("  " + displayId + " → " + (valid ? "✓ VALID" : "✗ INVALID"));
         }
 
-        // Filter bogies with capacity greater than 60 using Streams
-        List<Bogie> filteredBogies = bogies.stream()
-                .filter(b -> b.capacity > 60)
-                .collect(Collectors.toList());
+        // Test Cargo Codes
+        String[] cargoCodes = {"CGO-ABC12", "CGO-XYZ99", "CGO-abc12", "CGO-AB1", "CGO-ABCD12", "CARGO-ABC12", ""};
 
-        // Display filtered bogies
-        System.out.println("\nFiltered Bogies (Capacity > 60):");
-        for (Bogie b : filteredBogies) {
-            System.out.println("  " + b.name + " → Capacity: " + b.capacity);
+        System.out.println("\nCargo Code Validation:");
+        System.out.println("  Pattern: CGO- followed by 3 uppercase letters and 2 digits\n");
+        for (String code : cargoCodes) {
+            String displayCode = code.isEmpty() ? "(empty)" : code;
+            boolean valid = validateCargoCode(code);
+            System.out.println("  " + displayCode + " → " + (valid ? "✓ VALID" : "✗ INVALID"));
         }
 
         System.out.println("\nProgram continues...");
