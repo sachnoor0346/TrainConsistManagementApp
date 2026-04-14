@@ -1,64 +1,63 @@
-// UC18: Linear Search for Bogie ID
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-class BogieSearch {
+// Train Consist Management App - UC20
+public class TrainConsistManagementApp {
 
-    // Linear Search Method
-    public static boolean searchBogie(String[] bogieIds, String key) {
+    // Inner Bogie class with type attribute
+    static class Bogie {
+        String name;
+        String type;
+        int capacity;
 
-        // Traverse array sequentially
-        for (int i = 0; i < bogieIds.length; i++) {
+        Bogie(String name, String type, int capacity) {
+            this.name = name;
+            this.type = type;
+            this.capacity = capacity;
+        }
 
-            // Compare using equals()
-            if (bogieIds[i].equals(key)) {
-                return true; // Match found → stop early
+        return null; // Not found
+    }
+
+    // Main method
+    public static void main(String[] args) {
+
+        System.out.println("==================================================");
+        System.out.println(" UC9 - Group Bogies by Type ");
+        System.out.println("==================================================\n");
+
+        // Create list of passenger bogies with types
+        List<Bogie> bogies = new ArrayList<>();
+
+        bogies.add(new Bogie("S1", "Sleeper", 72));
+        bogies.add(new Bogie("A1", "AC", 60));
+        bogies.add(new Bogie("S2", "Sleeper", 72));
+        bogies.add(new Bogie("B1", "AC", 64));
+        bogies.add(new Bogie("F1", "First Class", 24));
+        bogies.add(new Bogie("S3", "Sleeper", 72));
+        bogies.add(new Bogie("A2", "AC", 60));
+
+        // Display all bogies
+        System.out.println("All Bogies:");
+        for (Bogie b : bogies) {
+            System.out.println("  " + b.name + " [" + b.type + "] → Capacity: " + b.capacity);
+        }
+
+        // Group bogies by type using Collectors.groupingBy()
+        Map<String, List<Bogie>> groupedByType = bogies.stream()
+                .collect(Collectors.groupingBy(b -> b.type));
+
+        // Display grouped bogies
+        System.out.println("\nBogies Grouped by Type:");
+        for (Map.Entry<String, List<Bogie>> entry : groupedByType.entrySet()) {
+            System.out.println("\n  Type: " + entry.getKey());
+            for (Bogie b : entry.getValue()) {
+                System.out.println("    - " + b.name + " → Capacity: " + b.capacity);
             }
         }
 
-        return false; // No match found after full traversal
-    }
-
-    // Display result
-    public static void displayResult(String key, boolean found) {
-        if (found) {
-            System.out.println("Bogie ID " + key + " FOUND in the consist.");
-        } else {
-            System.out.println("Bogie ID " + key + " NOT FOUND in the consist.");
-        }
-    }
-}
-
-// Main Application
-public class TrainConsistManagementApp {
-    public static void main(String[] args) {
-
-        // Sample bogie IDs (unsorted)
-        String[] bogieIds = {"BG101", "BG205", "BG309", "BG412", "BG550"};
-
-        // Test Cases
-
-        System.out.println("---- Linear Search Tests ----");
-
-        // 1. Bogie Found
-        String key1 = "BG309";
-        BogieSearch.displayResult(key1, BogieSearch.searchBogie(bogieIds, key1));
-
-        // 2. Bogie Not Found
-        String key2 = "BG999";
-        BogieSearch.displayResult(key2, BogieSearch.searchBogie(bogieIds, key2));
-
-        // 3. First Element Match
-        String key3 = "BG101";
-        BogieSearch.displayResult(key3, BogieSearch.searchBogie(bogieIds, key3));
-
-        // 4. Last Element Match
-        String key4 = "BG550";
-        BogieSearch.displayResult(key4, BogieSearch.searchBogie(bogieIds, key4));
-
-        // 5. Single Element Array
-        String[] single = {"BG101"};
-        String key5 = "BG101";
-        BogieSearch.displayResult(key5, BogieSearch.searchBogie(single, key5));
-
-        System.out.println("\nProgram continues after search...");
+        System.out.println("\nProgram continues after handling exceptions...");
     }
 }
