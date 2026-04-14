@@ -1,112 +1,55 @@
 import org.junit.jupiter.api.Test;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-class TrainConsistManagementAppTest {
+public class TrainConsistManagementAppTest {
 
-    // Reuse Bogie class
-    static class Bogie {
-        String name;
-        int capacity;
-
-        Bogie(String name, int capacity) {
-            this.name = name;
-            this.capacity = capacity;
-        }
-    }
-
-    // Helper: Loop filtering
-    List<Bogie> filterUsingLoop(List<Bogie> bogies) {
-        List<Bogie> result = new ArrayList<>();
-        for (Bogie b : bogies) {
-            if (b.capacity > 60) {
-                result.add(b);
-            }
-        }
-        return result;
-    }
-
-    // Helper: Stream filtering
-    List<Bogie> filterUsingStream(List<Bogie> bogies) {
-        return bogies.stream()
-                .filter(b -> b.capacity > 60)
-                .collect(Collectors.toList());
-    }
-
-    // Loop filtering logic
+    // 1. Bogie Found
     @Test
-    void testLoopFilteringLogic() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", 72),
-                new Bogie("A1", 60),
-                new Bogie("D1", 90)
-        );
+    void testSearch_BogieFound() {
+        String[] bogieIds = {"BG101","BG205","BG309","BG412","BG550"};
 
-        List<Bogie> result = filterUsingLoop(bogies);
+        boolean result = BogieSearch.searchBogie(bogieIds, "BG309");
 
-        assertEquals(2, result.size()); // 72 & 90
+        assertTrue(result);
     }
 
-    // Stream filtering logic
+    // 2. Bogie Not Found
     @Test
-    void testStreamFilteringLogic() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", 72),
-                new Bogie("A1", 60),
-                new Bogie("D1", 90)
-        );
+    void testSearch_BogieNotFound() {
+        String[] bogieIds = {"BG101","BG205","BG309","BG412","BG550"};
 
-        List<Bogie> result = filterUsingStream(bogies);
+        boolean result = BogieSearch.searchBogie(bogieIds, "BG999");
 
-        assertEquals(2, result.size());
+        assertFalse(result);
     }
 
-    // Loop and Stream results match
+    // 3. First Element Match
     @Test
-    void testLoopAndStreamResultsMatch() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", 72),
-                new Bogie("A1", 60),
-                new Bogie("D1", 90)
-        );
+    void testSearch_FirstElementMatch() {
+        String[] bogieIds = {"BG101","BG205","BG309","BG412","BG550"};
 
-        List<Bogie> loopResult = filterUsingLoop(bogies);
-        List<Bogie> streamResult = filterUsingStream(bogies);
+        boolean result = BogieSearch.searchBogie(bogieIds, "BG101");
 
-        assertEquals(loopResult.size(), streamResult.size());
+        assertTrue(result);
     }
 
-    // Execution time measurement
+    // 4. Last Element Match
     @Test
-    void testExecutionTimeMeasurement() {
-        List<Bogie> bogies = new ArrayList<>();
-        for (int i = 0; i < 1000; i++) {
-            bogies.add(new Bogie("B" + i, i % 100));
-        }
+    void testSearch_LastElementMatch() {
+        String[] bogieIds = {"BG101","BG205","BG309","BG412","BG550"};
 
-        long start = System.nanoTime();
-        filterUsingLoop(bogies);
-        long end = System.nanoTime();
+        boolean result = BogieSearch.searchBogie(bogieIds, "BG550");
 
-        long elapsed = end - start;
-
-        assertTrue(elapsed > 0);
+        assertTrue(result);
     }
 
-    // Large dataset processing
+    // 5. Single Element Array
     @Test
-    void testLargeDatasetProcessing() {
-        List<Bogie> bogies = new ArrayList<>();
+    void testSearch_SingleElementArray() {
+        String[] bogieIds = {"BG101"};
 
-        for (int i = 0; i < 100000; i++) {
-            bogies.add(new Bogie("B" + i, (i % 2 == 0) ? 70 : 50));
-        }
+        boolean result = BogieSearch.searchBogie(bogieIds, "BG101");
 
-        List<Bogie> result = filterUsingStream(bogies);
-
-        // Half should be > 60 (i.e., 70)
-        assertEquals(50000, result.size());
+        assertTrue(result);
     }
 }
