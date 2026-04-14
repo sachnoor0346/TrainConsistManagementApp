@@ -1,34 +1,50 @@
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class TrainConsistManagementApp {
 
+    // Reusing Bogie model from UC7
+    static class Bogie {
+        String name;
+        int capacity;
+
+        Bogie(String name, int capacity) {
+            this.name = name;
+            this.capacity = capacity;
+        }
+    }
+
     public static void main(String[] args) {
 
-        System.out.println("=== Train Consist Management App ===");
+        System.out.println("==================================================");
+        System.out.println(" UC8 - Filter Passenger Bogies Using Streams ");
+        System.out.println("==================================================\n");
 
-        // Create HashMap
-        Map<String, Integer> bogieCapacityMap = new HashMap<>();
+        // Create list of passenger bogies (same style as UC7)
+        List<Bogie> bogies = new ArrayList<>();
 
-        // Insert data
-        bogieCapacityMap.put("Sleeper", 72);
-        bogieCapacityMap.put("AC Chair", 60);
-        bogieCapacityMap.put("First Class", 24);
+        bogies.add(new Bogie("Sleeper", 72));
+        bogies.add(new Bogie("AC Chair", 60));
+        bogies.add(new Bogie("First Class", 24));
+        bogies.add(new Bogie("Second Sitting", 90));
+        bogies.add(new Bogie("Third AC", 64));
 
-        // BEFORE SORTING
-        System.out.println("\nBefore Sorting:");
-        for (Map.Entry<String, Integer> entry : bogieCapacityMap.entrySet()) {
-            System.out.println(entry.getKey() + " → Capacity: " + entry.getValue());
+        // Display all bogies
+        System.out.println("All Bogies:");
+        for (Bogie b : bogies) {
+            System.out.println("  " + b.name + " → Capacity: " + b.capacity);
         }
 
-        // SORTING using TreeMap (sorts by key automatically)
-        Map<String, Integer> sortedMap = new TreeMap<>(bogieCapacityMap);
+        // Filter bogies with capacity greater than 60 using Streams
+        List<Bogie> filteredBogies = bogies.stream()
+                .filter(b -> b.capacity > 60)
+                .collect(Collectors.toList());
 
-        // AFTER SORTING
-        System.out.println("\nAfter Sorting (by Bogie Type):");
-        for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
-            System.out.println(entry.getKey() + " → Capacity: " + entry.getValue());
+        // Display filtered bogies
+        System.out.println("\nFiltered Bogies (Capacity > 60):");
+        for (Bogie b : filteredBogies) {
+            System.out.println("  " + b.name + " → Capacity: " + b.capacity);
         }
 
         System.out.println("\nProgram continues...");
