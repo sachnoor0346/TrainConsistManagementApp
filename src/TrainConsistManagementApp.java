@@ -1,101 +1,62 @@
-// Custom Runtime Exception
-class CargoSafetyException extends RuntimeException {
-    public CargoSafetyException(String message) {
-        super(message);
-    }
-}
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-// Enum for Cargo Types
-enum CargoType {
-    COAL,
-    GRAINS,
-    PETROLEUM
-}
-
-// Abstract Goods Bogie
-abstract class GoodsBogie {
-    protected String bogieId;
-    protected CargoType cargo;
-
-    public GoodsBogie(String bogieId) {
-        this.bogieId = bogieId;
-    }
-
-    public abstract String getShape();
-
-    // UC15: Safe cargo assignment using try-catch-finally
-    public void assignCargo(CargoType cargoType) {
-        try {
-            validateCargo(cargoType);
-            this.cargo = cargoType;
-            System.out.println("Cargo " + cargoType + " assigned to " + bogieId);
-        }
-        catch (CargoSafetyException e) {
-            System.out.println("ERROR: " + e.getMessage());
-        }
-        finally {
-            System.out.println("Assignment attempt completed for " + bogieId);
-        }
-    }
-
-    // Validation logic
-    private void validateCargo(CargoType cargoType) {
-        if (this.getShape().equalsIgnoreCase("Rectangular")
-                && cargoType == CargoType.PETROLEUM) {
-            throw new CargoSafetyException(
-                    "Unsafe cargo! Petroleum cannot be loaded into a Rectangular Bogie: " + bogieId
-            );
-        }
-    }
-
-    public CargoType getCargo() {
-        return cargo;
-    }
-}
-
-// Rectangular Bogie
-class RectangularBogie extends GoodsBogie {
-    public RectangularBogie(String bogieId) {
-        super(bogieId);
-    }
-
-    @Override
-    public String getShape() {
-        return "Rectangular";
-    }
-}
-
-// Cylindrical Bogie
-class CylindricalBogie extends GoodsBogie {
-    public CylindricalBogie(String bogieId) {
-        super(bogieId);
-    }
-
-    @Override
-    public String getShape() {
-        return "Cylindrical";
-    }
-}
-
-// Main Application
+// Train Consist Management App - UC20
 public class TrainConsistManagementApp {
+
+    // Inner Bogie class with type attribute
+    static class Bogie {
+        String name;
+        String type;
+        int capacity;
+
+        Bogie(String name, String type, int capacity) {
+            this.name = name;
+            this.type = type;
+            this.capacity = capacity;
+        }
+
+        return null; // Not found
+    }
+
+    // Main method
     public static void main(String[] args) {
 
-        GoodsBogie rectBogie = new RectangularBogie("RB1");
-        GoodsBogie cylBogie = new CylindricalBogie("CB1");
+        System.out.println("==================================================");
+        System.out.println(" UC9 - Group Bogies by Type ");
+        System.out.println("==================================================\n");
 
-        // Safe assignment
-        rectBogie.assignCargo(CargoType.COAL);
+        // Create list of passenger bogies with types
+        List<Bogie> bogies = new ArrayList<>();
 
-        System.out.println();
+        bogies.add(new Bogie("S1", "Sleeper", 72));
+        bogies.add(new Bogie("A1", "AC", 60));
+        bogies.add(new Bogie("S2", "Sleeper", 72));
+        bogies.add(new Bogie("B1", "AC", 64));
+        bogies.add(new Bogie("F1", "First Class", 24));
+        bogies.add(new Bogie("S3", "Sleeper", 72));
+        bogies.add(new Bogie("A2", "AC", 60));
 
-        // Unsafe assignment (should trigger exception)
-        rectBogie.assignCargo(CargoType.PETROLEUM);
+        // Display all bogies
+        System.out.println("All Bogies:");
+        for (Bogie b : bogies) {
+            System.out.println("  " + b.name + " [" + b.type + "] → Capacity: " + b.capacity);
+        }
 
-        System.out.println();
+        // Group bogies by type using Collectors.groupingBy()
+        Map<String, List<Bogie>> groupedByType = bogies.stream()
+                .collect(Collectors.groupingBy(b -> b.type));
 
-        // Safe assignment
-        cylBogie.assignCargo(CargoType.PETROLEUM);
+        // Display grouped bogies
+        System.out.println("\nBogies Grouped by Type:");
+        for (Map.Entry<String, List<Bogie>> entry : groupedByType.entrySet()) {
+            System.out.println("\n  Type: " + entry.getKey());
+            for (Bogie b : entry.getValue()) {
+                System.out.println("    - " + b.name + " → Capacity: " + b.capacity);
+            }
+        }
 
         System.out.println("\nProgram continues after handling exceptions...");
     }
