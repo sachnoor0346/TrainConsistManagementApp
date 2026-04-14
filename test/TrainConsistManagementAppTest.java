@@ -9,104 +9,133 @@ class TrainConsistManagementAppTest {
     // Reuse Bogie class
     static class Bogie {
         String name;
+        String type;
         int capacity;
 
-        Bogie(String name, int capacity) {
+        Bogie(String name, String type, int capacity) {
             this.name = name;
+            this.type = type;
             this.capacity = capacity;
         }
     }
 
-    // Helper: Loop filtering
-    List<Bogie> filterUsingLoop(List<Bogie> bogies) {
-        List<Bogie> result = new ArrayList<>();
-        for (Bogie b : bogies) {
-            if (b.capacity > 60) {
-                result.add(b);
-            }
-        }
-        return result;
-    }
-
-    // Helper: Stream filtering
-    List<Bogie> filterUsingStream(List<Bogie> bogies) {
+    // Helper method for grouping
+    Map<String, List<Bogie>> groupBogies(List<Bogie> bogies) {
         return bogies.stream()
-                .filter(b -> b.capacity > 60)
-                .collect(Collectors.toList());
+                .collect(Collectors.groupingBy(b -> b.type));
     }
 
-    // Loop filtering logic
+    // 1️⃣ Bogies grouped by type
     @Test
-    void testLoopFilteringLogic() {
+    void testGrouping_BogiesGroupedByType() {
         List<Bogie> bogies = List.of(
-                new Bogie("S1", 72),
-                new Bogie("A1", 60),
-                new Bogie("D1", 90)
+                new Bogie("S1", "Sleeper", 72),
+                new Bogie("S2", "Sleeper", 72)
         );
 
-        List<Bogie> result = filterUsingLoop(bogies);
+        Map<String, List<Bogie>> result = groupBogies(bogies);
 
-        assertEquals(2, result.size()); // 72 & 90
+        assertTrue(result.containsKey("Sleeper"));
+        assertEquals(2, result.get("Sleeper").size());
     }
 
-    // Stream filtering logic
+    // 2️⃣ Multiple bogies in same group
     @Test
-    void testStreamFilteringLogic() {
+    void testGrouping_MultipleBogiesInSameGroup() {
         List<Bogie> bogies = List.of(
-                new Bogie("S1", 72),
-                new Bogie("A1", 60),
-                new Bogie("D1", 90)
+                new Bogie("A1", "AC", 60),
+                new Bogie("A2", "AC", 60),
+                new Bogie("B1", "AC", 64)
         );
 
-        List<Bogie> result = filterUsingStream(bogies);
+        Map<String, List<Bogie>> result = groupBogies(bogies);
 
-        assertEquals(2, result.size());
+        assertEquals(3, result.get("AC").size());
     }
 
-    // Loop and Stream results match
+    // 3️⃣ Different bogie types → different groups
     @Test
-    void testLoopAndStreamResultsMatch() {
+    void testGrouping_DifferentBogieTypes() {
         List<Bogie> bogies = List.of(
-                new Bogie("S1", 72),
-                new Bogie("A1", 60),
-                new Bogie("D1", 90)
+                new Bogie("S1", "Sleeper", 72),
+                new Bogie("A1", "AC", 60),
+                new Bogie("F1", "First Class", 24)
         );
 
-        List<Bogie> loopResult = filterUsingLoop(bogies);
-        List<Bogie> streamResult = filterUsingStream(bogies);
+        Map<String, List<Bogie>> result = groupBogies(bogies);
 
-        assertEquals(loopResult.size(), streamResult.size());
+        assertEquals(3, result.size());
+        assertTrue(result.containsKey("Sleeper"));
+        assertTrue(result.containsKey("AC"));
+        assertTrue(result.containsKey("First Class"));
     }
 
-    // Execution time measurement
+    // 4️⃣ Empty bogie list
     @Test
-    void testExecutionTimeMeasurement() {
-        List<Bogie> bogies = new ArrayList<>();
-        for (int i = 0; i < 1000; i++) {
-            bogies.add(new Bogie("B" + i, i % 100));
-        }
-
-        long start = System.nanoTime();
-        filterUsingLoop(bogies);
-        long end = System.nanoTime();
-
-        long elapsed = end - start;
-
-        assertTrue(elapsed > 0);
-    }
-
-    // Large dataset processing
-    @Test
-    void testLargeDatasetProcessing() {
+    void testGrouping_EmptyBogieList() {
         List<Bogie> bogies = new ArrayList<>();
 
-        for (int i = 0; i < 100000; i++) {
-            bogies.add(new Bogie("B" + i, (i % 2 == 0) ? 70 : 50));
-        }
+        Map<String, List<Bogie>> result = groupBogies(bogies);
 
-        List<Bogie> result = filterUsingStream(bogies);
+        assertTrue(result.isEmpty());
+    }
 
-        // Half should be > 60 (i.e., 70)
-        assertEquals(50000, result.size());
+    // 5️⃣ Single bogie category
+    @Test
+    void testGrouping_SingleBogieCategory() {
+        List<Bogie> bogies = List.of(
+                new Bogie("S1", "Sleeper", 72),
+                new Bogie("S2", "Sleeper", 72)
+        );
+
+        Map<String, List<Bogie>> result = groupBogies(bogies);
+
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey("Sleeper"));
+    }
+
+    // 6️⃣ Map contains correct keys
+    @Test
+    void testGrouping_MapContainsCorrectKeys() {
+        List<Bogie> bogies = List.of(
+                new Bogie("S1", "Sleeper", 72),
+                new Bogie("A1", "AC", 60),
+                new Bogie("F1", "First Class", 24)
+        );
+
+        Map<String, List<Bogie>> result = groupBogies(bogies);
+
+        assertTrue(result.containsKey("Sleeper"));
+        assertTrue(result.containsKey("AC"));
+        assertTrue(result.containsKey("First Class"));
+    }
+
+    // 7️⃣ Group size validation
+    @Test
+    void testGrouping_GroupSizeValidation() {
+        List<Bogie> bogies = List.of(
+                new Bogie("S1", "Sleeper", 72),
+                new Bogie("S2", "Sleeper", 72),
+                new Bogie("A1", "AC", 60)
+        );
+
+        Map<String, List<Bogie>> result = groupBogies(bogies);
+
+        assertEquals(2, result.get("Sleeper").size());
+        assertEquals(1, result.get("AC").size());
+    }
+
+    // 8️⃣ Original list unchanged
+    @Test
+    void testGrouping_OriginalListUnchanged() {
+        List<Bogie> bogies = new ArrayList<>();
+        bogies.add(new Bogie("S1", "Sleeper", 72));
+        bogies.add(new Bogie("A1", "AC", 60));
+
+        int originalSize = bogies.size();
+
+        groupBogies(bogies);
+
+        assertEquals(originalSize, bogies.size());
     }
 }
