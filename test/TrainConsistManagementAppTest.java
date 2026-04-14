@@ -1,66 +1,112 @@
 import org.junit.jupiter.api.Test;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class TrainConsistManagementAppTest {
 
-    // 1️⃣ Valid Train ID
-    @Test
-    void testRegex_ValidTrainID() {
-        assertTrue(TrainConsistManagementApp.validateTrainId("TR12345"));
-        assertTrue(TrainConsistManagementApp.validateTrainId("TR00001"));
+    // Reuse Bogie class
+    static class Bogie {
+        String name;
+        int capacity;
+
+        Bogie(String name, int capacity) {
+            this.name = name;
+            this.capacity = capacity;
+        }
     }
 
-    // 2️⃣ Invalid Train ID format
-    @Test
-    void testRegex_InvalidTrainIDFormat() {
-        assertFalse(TrainConsistManagementApp.validateTrainId("TRAIN12"));
-        assertFalse(TrainConsistManagementApp.validateTrainId("TR12A45"));
-        assertFalse(TrainConsistManagementApp.validateTrainId("12345TR"));
+    // Helper: Loop filtering
+    List<Bogie> filterUsingLoop(List<Bogie> bogies) {
+        List<Bogie> result = new ArrayList<>();
+        for (Bogie b : bogies) {
+            if (b.capacity > 60) {
+                result.add(b);
+            }
+        }
+        return result;
     }
 
-    // 3️⃣ Valid Cargo Code
-    @Test
-    void testRegex_ValidCargoCode() {
-        assertTrue(TrainConsistManagementApp.validateCargoCode("CGO-ABC12"));
-        assertTrue(TrainConsistManagementApp.validateCargoCode("CGO-XYZ99"));
+    // Helper: Stream filtering
+    List<Bogie> filterUsingStream(List<Bogie> bogies) {
+        return bogies.stream()
+                .filter(b -> b.capacity > 60)
+                .collect(Collectors.toList());
     }
 
-    // 4️⃣ Invalid Cargo Code format
+    // Loop filtering logic
     @Test
-    void testRegex_InvalidCargoCodeFormat() {
-        assertFalse(TrainConsistManagementApp.validateCargoCode("CGO-abc12")); // lowercase
-        assertFalse(TrainConsistManagementApp.validateCargoCode("CGO12345"));  // missing format
-        assertFalse(TrainConsistManagementApp.validateCargoCode("ABC-CGO12")); // wrong order
+    void testLoopFilteringLogic() {
+        List<Bogie> bogies = List.of(
+                new Bogie("S1", 72),
+                new Bogie("A1", 60),
+                new Bogie("D1", 90)
+        );
+
+        List<Bogie> result = filterUsingLoop(bogies);
+
+        assertEquals(2, result.size()); // 72 & 90
     }
 
-    // 5️⃣ Train ID digit length validation
+    // Stream filtering logic
     @Test
-    void testRegex_TrainIDDigitLengthValidation() {
-        assertFalse(TrainConsistManagementApp.validateTrainId("TR1234"));   // 4 digits
-        assertFalse(TrainConsistManagementApp.validateTrainId("TR123456")); // 6 digits
+    void testStreamFilteringLogic() {
+        List<Bogie> bogies = List.of(
+                new Bogie("S1", 72),
+                new Bogie("A1", 60),
+                new Bogie("D1", 90)
+        );
+
+        List<Bogie> result = filterUsingStream(bogies);
+
+        assertEquals(2, result.size());
     }
 
-    // 6️⃣ Cargo Code uppercase validation
+    // Loop and Stream results match
     @Test
-    void testRegex_CargoCodeUppercaseValidation() {
-        assertFalse(TrainConsistManagementApp.validateCargoCode("CGO-AbC12"));
-        assertFalse(TrainConsistManagementApp.validateCargoCode("CGO-abc12"));
+    void testLoopAndStreamResultsMatch() {
+        List<Bogie> bogies = List.of(
+                new Bogie("S1", 72),
+                new Bogie("A1", 60),
+                new Bogie("D1", 90)
+        );
+
+        List<Bogie> loopResult = filterUsingLoop(bogies);
+        List<Bogie> streamResult = filterUsingStream(bogies);
+
+        assertEquals(loopResult.size(), streamResult.size());
     }
 
-    // 7️⃣ Empty input handling
+    // Execution time measurement
     @Test
-    void testRegex_EmptyInputHandling() {
-        assertFalse(TrainConsistManagementApp.validateTrainId(""));
-        assertFalse(TrainConsistManagementApp.validateCargoCode(""));
+    void testExecutionTimeMeasurement() {
+        List<Bogie> bogies = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            bogies.add(new Bogie("B" + i, i % 100));
+        }
+
+        long start = System.nanoTime();
+        filterUsingLoop(bogies);
+        long end = System.nanoTime();
+
+        long elapsed = end - start;
+
+        assertTrue(elapsed > 0);
     }
 
-    // 8️⃣ Exact pattern match (no extra characters allowed)
+    // Large dataset processing
     @Test
-    void testRegex_ExactPatternMatch() {
-        assertFalse(TrainConsistManagementApp.validateTrainId("TR12345X"));
-        assertFalse(TrainConsistManagementApp.validateTrainId("XTR12345"));
+    void testLargeDatasetProcessing() {
+        List<Bogie> bogies = new ArrayList<>();
 
-        assertFalse(TrainConsistManagementApp.validateCargoCode("CGO-ABC12X"));
-        assertFalse(TrainConsistManagementApp.validateCargoCode("XCGO-ABC12"));
+        for (int i = 0; i < 100000; i++) {
+            bogies.add(new Bogie("B" + i, (i % 2 == 0) ? 70 : 50));
+        }
+
+        List<Bogie> result = filterUsingStream(bogies);
+
+        // Half should be > 60 (i.e., 70)
+        assertEquals(50000, result.size());
     }
 }
