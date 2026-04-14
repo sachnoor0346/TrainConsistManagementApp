@@ -1,64 +1,90 @@
-// UC18: Linear Search for Bogie ID
+import java.util.ArrayList;
+import java.util.List;
 
-class BogieSearch {
+// Train Consist Management App - UC20
+public class TrainConsistManagementApp {
 
-    // Linear Search Method
-    public static boolean searchBogie(String[] bogieIds, String key) {
+    // Collection of bogies
+    private List<String> bogies = new ArrayList<>();
 
-        // Traverse array sequentially
-        for (int i = 0; i < bogieIds.length; i++) {
+    // Method to add bogies
+    public void addBogie(String bogieId) {
+        bogies.add(bogieId);
+        System.out.println("Bogie " + bogieId + " added to train.");
+    }
 
-            // Compare using equals()
-            if (bogieIds[i].equals(key)) {
-                return true; // Match found → stop early
+    /**
+     * UC20: Exception Handling During Search Operations
+     * Implements fail-fast validation
+     */
+    public String findBogie(String bogieId) {
+
+        // State Validation (Fail-Fast)
+        if (bogies.isEmpty()) {
+            throw new IllegalStateException(
+                    "Search failed: No bogies available in the train. Please add bogies first."
+            );
+        }
+
+        // Search Logic
+        for (String bogie : bogies) {
+            if (bogie.equals(bogieId)) {
+                return bogie;
             }
         }
 
-        return false; // No match found after full traversal
+        return null; // Not found
     }
 
-    // Display result
-    public static void displayResult(String key, boolean found) {
-        if (found) {
-            System.out.println("Bogie ID " + key + " FOUND in the consist.");
-        } else {
-            System.out.println("Bogie ID " + key + " NOT FOUND in the consist.");
-        }
-    }
-}
-
-// Main Application
-public class TrainConsistManagementApp {
+    // Main method
     public static void main(String[] args) {
 
-        // Sample bogie IDs (unsorted)
-        String[] bogieIds = {"BG101", "BG205", "BG309", "BG412", "BG550"};
+        TrainConsistManagementApp train = new TrainConsistManagementApp();
 
-        // Test Cases
+        System.out.println("===== UC20: Exception Handling During Search =====\n");
 
-        System.out.println("---- Linear Search Tests ----");
+        // Case 1: Search without adding bogies (FAIL-FAST)
+        try {
+            System.out.println("Attempting search in empty train...");
+            train.findBogie("BG101"); // should throw exception
+        } catch (IllegalStateException e) {
+            System.out.println("ERROR: " + e.getMessage());
+        }
 
-        // 1. Bogie Found
-        String key1 = "BG309";
-        BogieSearch.displayResult(key1, BogieSearch.searchBogie(bogieIds, key1));
+        // Add bogies
+        System.out.println("\nAdding bogies...\n");
+        train.addBogie("BG101");
+        train.addBogie("BG205");
+        train.addBogie("BG309");
 
-        // 2. Bogie Not Found
-        String key2 = "BG999";
-        BogieSearch.displayResult(key2, BogieSearch.searchBogie(bogieIds, key2));
+        // Case 2: Valid search
+        try {
+            System.out.println("\nSearching for BG205...");
+            String result = train.findBogie("BG205");
 
-        // 3. First Element Match
-        String key3 = "BG101";
-        BogieSearch.displayResult(key3, BogieSearch.searchBogie(bogieIds, key3));
+            if (result != null) {
+                System.out.println("Bogie FOUND: " + result);
+            } else {
+                System.out.println("Bogie NOT FOUND");
+            }
+        } catch (Exception e) {
+            System.out.println("ERROR: " + e.getMessage());
+        }
 
-        // 4. Last Element Match
-        String key4 = "BG550";
-        BogieSearch.displayResult(key4, BogieSearch.searchBogie(bogieIds, key4));
+        // Case 3: Bogie not found
+        try {
+            System.out.println("\nSearching for BG999...");
+            String result = train.findBogie("BG999");
 
-        // 5. Single Element Array
-        String[] single = {"BG101"};
-        String key5 = "BG101";
-        BogieSearch.displayResult(key5, BogieSearch.searchBogie(single, key5));
+            if (result != null) {
+                System.out.println("Bogie FOUND: " + result);
+            } else {
+                System.out.println("Bogie NOT FOUND");
+            }
+        } catch (Exception e) {
+            System.out.println("ERROR: " + e.getMessage());
+        }
 
-        System.out.println("\nProgram continues after search...");
+        System.out.println("\nProgram continues after handling exceptions...");
     }
 }
