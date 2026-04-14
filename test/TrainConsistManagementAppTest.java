@@ -1,80 +1,76 @@
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Arrays;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 public class TrainConsistManagementAppTest {
 
-    // 1. Bogie Found
+    // 1. Safe cargo assignment
     @Test
-    void testBinarySearch_BogieFound() {
-        String[] bogieIds = {"BG101","BG205","BG309","BG412","BG550"};
+    void testCargo_SafeAssignment() {
+        GoodsBogie cylBogie = new CylindricalBogie("CB1");
 
-        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG309");
+        assertDoesNotThrow(() -> {
+            cylBogie.assignCargo(CargoType.PETROLEUM);
+        });
 
-        assertTrue(result);
+        assertEquals(CargoType.PETROLEUM, cylBogie.getCargo());
     }
 
-    // 2. Bogie Not Found
+    // 2. Unsafe assignment handled (exception caught internally)
     @Test
-    void testBinarySearch_BogieNotFound() {
-        String[] bogieIds = {"BG101","BG205","BG309","BG412","BG550"};
+    void testCargo_UnsafeAssignmentHandled() {
+        GoodsBogie rectBogie = new RectangularBogie("RB1");
 
-        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG999");
+        // Capture console output
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(output));
 
-        assertFalse(result);
+        rectBogie.assignCargo(CargoType.PETROLEUM);
+
+        String result = output.toString();
+
+        assertTrue(result.contains("ERROR: Unsafe cargo! Petroleum cannot be loaded"));
     }
 
-    // 3. First Element Match
+    // 3. Cargo not assigned after failure
     @Test
-    void testBinarySearch_FirstElementMatch() {
-        String[] bogieIds = {"BG101","BG205","BG309","BG412","BG550"};
+    void testCargo_CargoNotAssignedAfterFailure() {
+        GoodsBogie rectBogie = new RectangularBogie("RB1");
 
-        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG101");
+        rectBogie.assignCargo(CargoType.PETROLEUM);
 
-        assertTrue(result);
+        assertNull(rectBogie.getCargo());
     }
 
-    // 4. Last Element Match
+    // 4. Program continues after exception
     @Test
-    void testBinarySearch_LastElementMatch() {
-        String[] bogieIds = {"BG101","BG205","BG309","BG412","BG550"};
+    void testCargo_ProgramContinuesAfterException() {
+        GoodsBogie rectBogie = new RectangularBogie("RB1");
+        GoodsBogie cylBogie = new CylindricalBogie("CB1");
 
-        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG550");
+        assertDoesNotThrow(() -> {
+            rectBogie.assignCargo(CargoType.PETROLEUM); // unsafe
+            cylBogie.assignCargo(CargoType.COAL);       // should still execute
+        });
 
-        assertTrue(result);
+        assertEquals(CargoType.COAL, cylBogie.getCargo());
     }
 
-    // 5. Single Element Array
+    // 5. Finally block execution
     @Test
-    void testBinarySearch_SingleElementArray() {
-        String[] bogieIds = {"BG101"};
+    void testCargo_FinallyBlockExecution() {
+        GoodsBogie rectBogie = new RectangularBogie("RB1");
 
-        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG101");
+        // Capture console output
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(output));
 
-        assertTrue(result);
-    }
+        rectBogie.assignCargo(CargoType.PETROLEUM);
 
-    // 6. Empty Array
-    @Test
-    void testBinarySearch_EmptyArray() {
-        String[] bogieIds = {};
+        String result = output.toString();
 
-        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG101");
-
-        assertFalse(result);
-    }
-
-    // 7. Unsorted Input (handled by sorting before search)
-    @Test
-    void testBinarySearch_UnsortedInputHandled() {
-        String[] bogieIds = {"BG309","BG101","BG550","BG205","BG412"};
-
-        // IMPORTANT: Binary search requires sorted input
-        Arrays.sort(bogieIds);
-
-        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG205");
-
-        assertTrue(result);
+        assertTrue(result.contains("Assignment attempt completed for RB1"));
     }
 }
