@@ -1,76 +1,117 @@
 import org.junit.jupiter.api.Test;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-public class TrainConsistManagementAppTest {
+    // Reuse Bogie class
+    static class Bogie {
+        String name;
+        int capacity;
 
-    // 1. Safe cargo assignment
-    @Test
-    void testCargo_SafeAssignment() {
-        GoodsBogie cylBogie = new CylindricalBogie("CB1");
-
-        assertDoesNotThrow(() -> {
-            cylBogie.assignCargo(CargoType.PETROLEUM);
-        });
-
-        assertEquals(CargoType.PETROLEUM, cylBogie.getCargo());
+        Bogie(String name, int capacity) {
+            this.name = name;
+            this.capacity = capacity;
+        }
     }
 
-    // 2. Unsafe assignment handled (exception caught internally)
-    @Test
-    void testCargo_UnsafeAssignmentHandled() {
-        GoodsBogie rectBogie = new RectangularBogie("RB1");
-
-        // Capture console output
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(output));
-
-        rectBogie.assignCargo(CargoType.PETROLEUM);
-
-        String result = output.toString();
-
-        assertTrue(result.contains("ERROR: Unsafe cargo! Petroleum cannot be loaded"));
+    // Helper method for reduce
+    int calculateTotalSeats(List<Bogie> bogies) {
+        return bogies.stream()
+                .map(b -> b.capacity)
+                .reduce(0, Integer::sum);
     }
 
-    // 3. Cargo not assigned after failure
+    // 1️⃣ Total seat calculation
     @Test
-    void testCargo_CargoNotAssignedAfterFailure() {
-        GoodsBogie rectBogie = new RectangularBogie("RB1");
+    void testReduce_TotalSeatCalculation() {
+        List<Bogie> bogies = List.of(
+                new Bogie("S1", 72),
+                new Bogie("A1", 60)
+        );
 
-        rectBogie.assignCargo(CargoType.PETROLEUM);
+        int result = calculateTotalSeats(bogies);
 
-        assertNull(rectBogie.getCargo());
+        assertEquals(132, result);
     }
 
-    // 4. Program continues after exception
+    // 2️⃣ Multiple bogies aggregation
     @Test
-    void testCargo_ProgramContinuesAfterException() {
-        GoodsBogie rectBogie = new RectangularBogie("RB1");
-        GoodsBogie cylBogie = new CylindricalBogie("CB1");
+    void testReduce_MultipleBogiesAggregation() {
+        List<Bogie> bogies = List.of(
+                new Bogie("S1", 72),
+                new Bogie("A1", 60),
+                new Bogie("F1", 24)
+        );
 
-        assertDoesNotThrow(() -> {
-            rectBogie.assignCargo(CargoType.PETROLEUM); // unsafe
-            cylBogie.assignCargo(CargoType.COAL);       // should still execute
-        });
+        int result = calculateTotalSeats(bogies);
 
-        assertEquals(CargoType.COAL, cylBogie.getCargo());
+        assertEquals(156, result);
     }
 
-    // 5. Finally block execution
+    // 3️⃣ Single bogie
     @Test
-    void testCargo_FinallyBlockExecution() {
-        GoodsBogie rectBogie = new RectangularBogie("RB1");
+    void testReduce_SingleBogieCapacity() {
+        List<Bogie> bogies = List.of(
+                new Bogie("S1", 72)
+        );
 
-        // Capture console output
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(output));
+        int result = calculateTotalSeats(bogies);
 
-        rectBogie.assignCargo(CargoType.PETROLEUM);
+        assertEquals(72, result);
+    }
 
-        String result = output.toString();
+    // 4️⃣ Empty list
+    @Test
+    void testReduce_EmptyBogieList() {
+        List<Bogie> bogies = new ArrayList<>();
 
-        assertTrue(result.contains("Assignment attempt completed for RB1"));
+        int result = calculateTotalSeats(bogies);
+
+        assertEquals(0, result);
+    }
+
+    // 5️⃣ Correct capacity extraction
+    @Test
+    void testReduce_CorrectCapacityExtraction() {
+        List<Bogie> bogies = List.of(
+                new Bogie("S1", 70),
+                new Bogie("A1", 30)
+        );
+
+        int result = calculateTotalSeats(bogies);
+
+        assertEquals(100, result);
+    }
+
+    // 6️⃣ All bogies included
+    @Test
+    void testReduce_AllBogiesIncluded() {
+        List<Bogie> bogies = List.of(
+                new Bogie("S1", 10),
+                new Bogie("S2", 20),
+                new Bogie("S3", 30)
+        );
+
+        int result = calculateTotalSeats(bogies);
+
+        assertEquals(60, result);
+    }
+
+    // 7️⃣ Original list unchanged
+    @Test
+    void testReduce_OriginalListUnchanged() {
+        List<Bogie> bogies = new ArrayList<>();
+        bogies.add(new Bogie("S1", 72));
+        bogies.add(new Bogie("A1", 60));
+
+        int originalSize = bogies.size();
+
+        calculateTotalSeats(bogies);
+
+        assertEquals(originalSize, bogies.size());
     }
 }
