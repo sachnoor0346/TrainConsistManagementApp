@@ -1,141 +1,80 @@
 import org.junit.jupiter.api.Test;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-class TrainConsistManagementAppTest {
+import java.util.Arrays;
 
-    // Reuse Bogie class
-    static class Bogie {
-        String name;
-        String type;
-        int capacity;
+public class TrainConsistManagementAppTest {
 
-        Bogie(String name, String type, int capacity) {
-            this.name = name;
-            this.type = type;
-            this.capacity = capacity;
-        }
-    }
-
-    // Helper method for grouping
-    Map<String, List<Bogie>> groupBogies(List<Bogie> bogies) {
-        return bogies.stream()
-                .collect(Collectors.groupingBy(b -> b.type));
-    }
-
-    // 1️⃣ Bogies grouped by type
+    // 1. Bogie Found
     @Test
-    void testGrouping_BogiesGroupedByType() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", "Sleeper", 72),
-                new Bogie("S2", "Sleeper", 72)
-        );
+    void testBinarySearch_BogieFound() {
+        String[] bogieIds = {"BG101","BG205","BG309","BG412","BG550"};
 
-        Map<String, List<Bogie>> result = groupBogies(bogies);
+        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG309");
 
-        assertTrue(result.containsKey("Sleeper"));
-        assertEquals(2, result.get("Sleeper").size());
+        assertTrue(result);
     }
 
-    // 2️⃣ Multiple bogies in same group
+    // 2. Bogie Not Found
     @Test
-    void testGrouping_MultipleBogiesInSameGroup() {
-        List<Bogie> bogies = List.of(
-                new Bogie("A1", "AC", 60),
-                new Bogie("A2", "AC", 60),
-                new Bogie("B1", "AC", 64)
-        );
+    void testBinarySearch_BogieNotFound() {
+        String[] bogieIds = {"BG101","BG205","BG309","BG412","BG550"};
 
-        Map<String, List<Bogie>> result = groupBogies(bogies);
+        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG999");
 
-        assertEquals(3, result.get("AC").size());
+        assertFalse(result);
     }
 
-    // 3️⃣ Different bogie types → different groups
+    // 3. First Element Match
     @Test
-    void testGrouping_DifferentBogieTypes() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", "Sleeper", 72),
-                new Bogie("A1", "AC", 60),
-                new Bogie("F1", "First Class", 24)
-        );
+    void testBinarySearch_FirstElementMatch() {
+        String[] bogieIds = {"BG101","BG205","BG309","BG412","BG550"};
 
-        Map<String, List<Bogie>> result = groupBogies(bogies);
+        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG101");
 
-        assertEquals(3, result.size());
-        assertTrue(result.containsKey("Sleeper"));
-        assertTrue(result.containsKey("AC"));
-        assertTrue(result.containsKey("First Class"));
+        assertTrue(result);
     }
 
-    // 4️⃣ Empty bogie list
+    // 4. Last Element Match
     @Test
-    void testGrouping_EmptyBogieList() {
-        List<Bogie> bogies = new ArrayList<>();
+    void testBinarySearch_LastElementMatch() {
+        String[] bogieIds = {"BG101","BG205","BG309","BG412","BG550"};
 
-        Map<String, List<Bogie>> result = groupBogies(bogies);
+        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG550");
 
-        assertTrue(result.isEmpty());
+        assertTrue(result);
     }
 
-    // 5️⃣ Single bogie category
+    // 5. Single Element Array
     @Test
-    void testGrouping_SingleBogieCategory() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", "Sleeper", 72),
-                new Bogie("S2", "Sleeper", 72)
-        );
+    void testBinarySearch_SingleElementArray() {
+        String[] bogieIds = {"BG101"};
 
-        Map<String, List<Bogie>> result = groupBogies(bogies);
+        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG101");
 
-        assertEquals(1, result.size());
-        assertTrue(result.containsKey("Sleeper"));
+        assertTrue(result);
     }
 
-    // 6️⃣ Map contains correct keys
+    // 6. Empty Array
     @Test
-    void testGrouping_MapContainsCorrectKeys() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", "Sleeper", 72),
-                new Bogie("A1", "AC", 60),
-                new Bogie("F1", "First Class", 24)
-        );
+    void testBinarySearch_EmptyArray() {
+        String[] bogieIds = {};
 
-        Map<String, List<Bogie>> result = groupBogies(bogies);
+        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG101");
 
-        assertTrue(result.containsKey("Sleeper"));
-        assertTrue(result.containsKey("AC"));
-        assertTrue(result.containsKey("First Class"));
+        assertFalse(result);
     }
 
-    // 7️⃣ Group size validation
+    // 7. Unsorted Input (handled by sorting before search)
     @Test
-    void testGrouping_GroupSizeValidation() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", "Sleeper", 72),
-                new Bogie("S2", "Sleeper", 72),
-                new Bogie("A1", "AC", 60)
-        );
+    void testBinarySearch_UnsortedInputHandled() {
+        String[] bogieIds = {"BG309","BG101","BG550","BG205","BG412"};
 
-        Map<String, List<Bogie>> result = groupBogies(bogies);
+        // IMPORTANT: Binary search requires sorted input
+        Arrays.sort(bogieIds);
 
-        assertEquals(2, result.get("Sleeper").size());
-        assertEquals(1, result.get("AC").size());
-    }
+        boolean result = BogieBinarySearch.binarySearch(bogieIds, "BG205");
 
-    // 8️⃣ Original list unchanged
-    @Test
-    void testGrouping_OriginalListUnchanged() {
-        List<Bogie> bogies = new ArrayList<>();
-        bogies.add(new Bogie("S1", "Sleeper", 72));
-        bogies.add(new Bogie("A1", "AC", 60));
-
-        int originalSize = bogies.size();
-
-        groupBogies(bogies);
-
-        assertEquals(originalSize, bogies.size());
+        assertTrue(result);
     }
 }
