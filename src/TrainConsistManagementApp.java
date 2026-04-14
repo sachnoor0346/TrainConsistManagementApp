@@ -1,59 +1,96 @@
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class TrainConsistManagementApp {
 
-    // Train ID pattern: Must start with "TR" followed by exactly 5 digits
-    // Example valid: TR12345, TR00001
-    private static final Pattern TRAIN_ID_PATTERN = Pattern.compile("^TR\\d{5}$");
+    // Maximum allowed weight per goods bogie (in tonnes)
+    static final double MAX_WEIGHT_TONNES = 25.0;
 
-    // Cargo Code pattern: Must start with "CGO-" followed by 3 uppercase letters and 2 digits
-    // Example valid: CGO-ABC12, CGO-XYZ99
-    private static final Pattern CARGO_CODE_PATTERN = Pattern.compile("^CGO-[A-Z]{3}\\d{2}$");
+    // Inner GoodsBogie class
+    static class GoodsBogie {
+        String bogieId;
+        String cargoType;
+        double weightTonnes;
+        boolean isHazardous;
 
-    public static boolean validateTrainId(String trainId) {
-        if (trainId == null || trainId.isEmpty()) {
-            return false;
+        GoodsBogie(String bogieId, String cargoType, double weightTonnes, boolean isHazardous) {
+            this.bogieId = bogieId;
+            this.cargoType = cargoType;
+            this.weightTonnes = weightTonnes;
+            this.isHazardous = isHazardous;
         }
-        Matcher matcher = TRAIN_ID_PATTERN.matcher(trainId);
-        return matcher.matches();
-    }
 
-    public static boolean validateCargoCode(String cargoCode) {
-        if (cargoCode == null || cargoCode.isEmpty()) {
-            return false;
+        boolean isCompliant() {
+            // Rule 1: Weight must not exceed maximum limit
+            if (weightTonnes > MAX_WEIGHT_TONNES) {
+                return false;
+            }
+            // Rule 2: Hazardous materials must be under 20 tonnes
+            if (isHazardous && weightTonnes > 20.0) {
+                return false;
+            }
+            return true;
         }
-        Matcher matcher = CARGO_CODE_PATTERN.matcher(cargoCode);
-        return matcher.matches();
+
+        String getViolationReason() {
+            if (weightTonnes > MAX_WEIGHT_TONNES) {
+                return "Exceeds max weight limit (" + weightTonnes + "t > " + MAX_WEIGHT_TONNES + "t)";
+            }
+            if (isHazardous && weightTonnes > 20.0) {
+                return "Hazardous cargo exceeds 20t limit (" + weightTonnes + "t)";
+            }
+            return "None";
+        }
     }
 
     public static void main(String[] args) {
 
         System.out.println("==================================================");
-        System.out.println(" UC11 - Validate Train ID & Cargo Codes ");
+        System.out.println(" UC12 - Safety Compliance Check for Goods Bogies ");
         System.out.println("==================================================\n");
 
-        // Test Train IDs
-        String[] trainIds = {"TR12345", "TR00001", "TX12345", "TR1234", "TR123456", "tr12345", ""};
+        // Create list of goods bogies
+        List<GoodsBogie> bogies = new ArrayList<>();
 
-        System.out.println("Train ID Validation:");
-        System.out.println("  Pattern: TR followed by exactly 5 digits\n");
-        for (String id : trainIds) {
-            String displayId = id.isEmpty() ? "(empty)" : id;
-            boolean valid = validateTrainId(id);
-            System.out.println("  " + displayId + " → " + (valid ? "✓ VALID" : "✗ INVALID"));
+        bogies.add(new GoodsBogie("G01", "Coal", 22.5, false));
+        bogies.add(new GoodsBogie("G02", "Chemicals", 18.0, true));
+        bogies.add(new GoodsBogie("G03", "Iron Ore", 27.0, false));
+        bogies.add(new GoodsBogie("G04", "Petroleum", 21.5, true));
+        bogies.add(new GoodsBogie("G05", "Grain", 15.0, false));
+        bogies.add(new GoodsBogie("G06", "Explosives", 23.0, true));
+
+        // Display all bogies
+        System.out.println("All Goods Bogies:");
+        for (GoodsBogie b : bogies) {
+            String hazLabel = b.isHazardous ? " [HAZARDOUS]" : "";
+            System.out.println("  " + b.bogieId + " - " + b.cargoType + " (" + b.weightTonnes + "t)" + hazLabel);
         }
 
-        // Test Cargo Codes
-        String[] cargoCodes = {"CGO-ABC12", "CGO-XYZ99", "CGO-abc12", "CGO-AB1", "CGO-ABCD12", "CARGO-ABC12", ""};
+        // Perform safety compliance check
+        System.out.println("\n── Safety Compliance Report ──\n");
 
-        System.out.println("\nCargo Code Validation:");
-        System.out.println("  Pattern: CGO- followed by 3 uppercase letters and 2 digits\n");
-        for (String code : cargoCodes) {
-            String displayCode = code.isEmpty() ? "(empty)" : code;
-            boolean valid = validateCargoCode(code);
-            System.out.println("  " + displayCode + " → " + (valid ? "✓ VALID" : "✗ INVALID"));
+        List<GoodsBogie> nonCompliant = bogies.stream()
+                .filter(b -> !b.isCompliant())
+                .collect(Collectors.toList());
+
+        List<GoodsBogie> compliant = bogies.stream()
+                .filter(GoodsBogie::isCompliant)
+                .collect(Collectors.toList());
+
+        System.out.println("✓ Compliant Bogies (" + compliant.size() + "):");
+        for (GoodsBogie b : compliant) {
+            System.out.println("    " + b.bogieId + " - " + b.cargoType + " (" + b.weightTonnes + "t) → PASS");
         }
+
+        System.out.println("\n✗ Non-Compliant Bogies (" + nonCompliant.size() + "):");
+        for (GoodsBogie b : nonCompliant) {
+            System.out.println("    " + b.bogieId + " - " + b.cargoType + " → FAIL: " + b.getViolationReason());
+        }
+
+        System.out.println("\n──────────────────────────────────");
+        System.out.println("Total: " + bogies.size() + " | Compliant: " + compliant.size() + " | Violations: " + nonCompliant.size());
+        System.out.println("──────────────────────────────────");
 
         System.out.println("\nProgram continues...");
     }
