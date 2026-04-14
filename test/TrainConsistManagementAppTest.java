@@ -15,6 +15,7 @@ public class TrainConsistManagementAppTest {
             cylBogie.assignCargo(CargoType.PETROLEUM);
         });
 
+        
         assertEquals(CargoType.PETROLEUM, cylBogie.getCargo());
     }
 
