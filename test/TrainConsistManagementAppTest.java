@@ -1,77 +1,60 @@
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-
 public class TrainConsistManagementAppTest {
 
-    // 1. Safe cargo assignment
+    // 1. Basic alphabetical sorting
     @Test
-    void testCargo_SafeAssignment() {
-        GoodsBogie cylBogie = new CylindricalBogie("CB1");
+    void testSort_BasicAlphabeticalSorting() {
+        String[] input = {"Sleeper","AC Chair","First Class","General","Luxury"};
+        String[] expected = {"AC Chair","First Class","General","Luxury","Sleeper"};
 
-        assertDoesNotThrow(() -> {
-            cylBogie.assignCargo(CargoType.PETROLEUM);
-        });
+        BogieNameSorter.sortBogieNames(input);
 
-        
-        assertEquals(CargoType.PETROLEUM, cylBogie.getCargo());
+        assertArrayEquals(expected, input);
     }
 
-    // 2. Unsafe assignment handled (exception caught internally)
+    // 2. Unsorted input
     @Test
-    void testCargo_UnsafeAssignmentHandled() {
-        GoodsBogie rectBogie = new RectangularBogie("RB1");
+    void testSort_UnsortedInput() {
+        String[] input = {"Luxury","General","Sleeper","AC Chair"};
+        String[] expected = {"AC Chair","General","Luxury","Sleeper"};
 
-        // Capture console output
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(output));
+        BogieNameSorter.sortBogieNames(input);
 
-        rectBogie.assignCargo(CargoType.PETROLEUM);
-
-        String result = output.toString();
-
-        assertTrue(result.contains("ERROR: Unsafe cargo! Petroleum cannot be loaded"));
+        assertArrayEquals(expected, input);
     }
 
-    // 3. Cargo not assigned after failure
+    // 3. Already sorted array
     @Test
-    void testCargo_CargoNotAssignedAfterFailure() {
-        GoodsBogie rectBogie = new RectangularBogie("RB1");
+    void testSort_AlreadySortedArray() {
+        String[] input = {"AC Chair","First Class","General"};
+        String[] expected = {"AC Chair","First Class","General"};
 
-        rectBogie.assignCargo(CargoType.PETROLEUM);
+        BogieNameSorter.sortBogieNames(input);
 
-        assertNull(rectBogie.getCargo());
+        assertArrayEquals(expected, input);
     }
 
-    // 4. Program continues after exception
+    // 4. Duplicate bogie names
     @Test
-    void testCargo_ProgramContinuesAfterException() {
-        GoodsBogie rectBogie = new RectangularBogie("RB1");
-        GoodsBogie cylBogie = new CylindricalBogie("CB1");
+    void testSort_DuplicateBogieNames() {
+        String[] input = {"Sleeper","AC Chair","Sleeper","General"};
+        String[] expected = {"AC Chair","General","Sleeper","Sleeper"};
 
-        assertDoesNotThrow(() -> {
-            rectBogie.assignCargo(CargoType.PETROLEUM); // unsafe
-            cylBogie.assignCargo(CargoType.COAL);       // should still execute
-        });
+        BogieNameSorter.sortBogieNames(input);
 
-        assertEquals(CargoType.COAL, cylBogie.getCargo());
+        assertArrayEquals(expected, input);
     }
 
-    // 5. Finally block execution
+    // 5. Single element array
     @Test
-    void testCargo_FinallyBlockExecution() {
-        GoodsBogie rectBogie = new RectangularBogie("RB1");
+    void testSort_SingleElementArray() {
+        String[] input = {"Sleeper"};
+        String[] expected = {"Sleeper"};
 
-        // Capture console output
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(output));
+        BogieNameSorter.sortBogieNames(input);
 
-        rectBogie.assignCargo(CargoType.PETROLEUM);
-
-        String result = output.toString();
-
-        assertTrue(result.contains("Assignment attempt completed for RB1"));
+        assertArrayEquals(expected, input);
     }
 }
