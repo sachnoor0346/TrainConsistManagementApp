@@ -1,112 +1,66 @@
 import org.junit.jupiter.api.Test;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-class TrainConsistManagementAppTest {
+public class TrainConsistManagementAppTest {
 
-    // Reuse Bogie class
-    static class Bogie {
-        String name;
-        int capacity;
-
-        Bogie(String name, int capacity) {
-            this.name = name;
-            this.capacity = capacity;
-        }
-    }
-
-    // Helper: Loop filtering
-    List<Bogie> filterUsingLoop(List<Bogie> bogies) {
-        List<Bogie> result = new ArrayList<>();
-        for (Bogie b : bogies) {
-            if (b.capacity > 60) {
-                result.add(b);
-            }
-        }
-        return result;
-    }
-
-    // Helper: Stream filtering
-    List<Bogie> filterUsingStream(List<Bogie> bogies) {
-        return bogies.stream()
-                .filter(b -> b.capacity > 60)
-                .collect(Collectors.toList());
-    }
-
-    // Loop filtering logic
+    // 1. Exception when searching empty bogie list
     @Test
-    void testLoopFilteringLogic() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", 72),
-                new Bogie("A1", 60),
-                new Bogie("D1", 90)
-        );
+    void testSearch_ThrowsExceptionWhenEmpty() {
+        TrainConsistManagementApp train = new TrainConsistManagementApp();
 
-        List<Bogie> result = filterUsingLoop(bogies);
-
-        assertEquals(2, result.size()); // 72 & 90
+        assertThrows(IllegalStateException.class, () -> {
+            train.findBogie("BG101");
+        });
     }
 
-    // Stream filtering logic
+    // 2. Search allowed when data exists
     @Test
-    void testStreamFilteringLogic() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", 72),
-                new Bogie("A1", 60),
-                new Bogie("D1", 90)
-        );
+    void testSearch_AllowsSearchWhenDataExists() {
+        TrainConsistManagementApp train = new TrainConsistManagementApp();
+        train.addBogie("BG101");
+        train.addBogie("BG205");
 
-        List<Bogie> result = filterUsingStream(bogies);
-
-        assertEquals(2, result.size());
+        assertDoesNotThrow(() -> {
+            train.findBogie("BG101");
+        });
     }
 
-    // Loop and Stream results match
+    // 3. Bogie found after validation
     @Test
-    void testLoopAndStreamResultsMatch() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", 72),
-                new Bogie("A1", 60),
-                new Bogie("D1", 90)
-        );
+    void testSearch_BogieFoundAfterValidation() {
+        TrainConsistManagementApp train = new TrainConsistManagementApp();
+        train.addBogie("BG101");
+        train.addBogie("BG205");
+        train.addBogie("BG309");
 
-        List<Bogie> loopResult = filterUsingLoop(bogies);
-        List<Bogie> streamResult = filterUsingStream(bogies);
+        String result = train.findBogie("BG205");
 
-        assertEquals(loopResult.size(), streamResult.size());
+        assertNotNull(result);
+        assertEquals("BG205", result);
     }
 
-    // Execution time measurement
+    // 4. Bogie not found after validation
     @Test
-    void testExecutionTimeMeasurement() {
-        List<Bogie> bogies = new ArrayList<>();
-        for (int i = 0; i < 1000; i++) {
-            bogies.add(new Bogie("B" + i, i % 100));
-        }
+    void testSearch_BogieNotFoundAfterValidation() {
+        TrainConsistManagementApp train = new TrainConsistManagementApp();
+        train.addBogie("BG101");
+        train.addBogie("BG205");
+        train.addBogie("BG309");
 
-        long start = System.nanoTime();
-        filterUsingLoop(bogies);
-        long end = System.nanoTime();
+        String result = train.findBogie("BG999");
 
-        long elapsed = end - start;
-
-        assertTrue(elapsed > 0);
+        assertNull(result);
     }
 
-    // Large dataset processing
+    // 5. Single element valid case
     @Test
-    void testLargeDatasetProcessing() {
-        List<Bogie> bogies = new ArrayList<>();
+    void testSearch_SingleElementValidCase() {
+        TrainConsistManagementApp train = new TrainConsistManagementApp();
+        train.addBogie("BG101");
 
-        for (int i = 0; i < 100000; i++) {
-            bogies.add(new Bogie("B" + i, (i % 2 == 0) ? 70 : 50));
-        }
+        String result = train.findBogie("BG101");
 
-        List<Bogie> result = filterUsingStream(bogies);
-
-        // Half should be > 60 (i.e., 70)
-        assertEquals(50000, result.size());
+        assertNotNull(result);
+        assertEquals("BG101", result);
     }
 }
