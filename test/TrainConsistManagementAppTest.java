@@ -1,112 +1,76 @@
 import org.junit.jupiter.api.Test;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-class TrainConsistManagementAppTest {
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
-    // Reuse Bogie class
-    static class Bogie {
-        String name;
-        int capacity;
+public class TrainConsistManagementAppTest {
 
-        Bogie(String name, int capacity) {
-            this.name = name;
-            this.capacity = capacity;
-        }
-    }
-
-    // Helper: Loop filtering
-    List<Bogie> filterUsingLoop(List<Bogie> bogies) {
-        List<Bogie> result = new ArrayList<>();
-        for (Bogie b : bogies) {
-            if (b.capacity > 60) {
-                result.add(b);
-            }
-        }
-        return result;
-    }
-
-    // Helper: Stream filtering
-    List<Bogie> filterUsingStream(List<Bogie> bogies) {
-        return bogies.stream()
-                .filter(b -> b.capacity > 60)
-                .collect(Collectors.toList());
-    }
-
-    // Loop filtering logic
+    // 1. Safe cargo assignment
     @Test
-    void testLoopFilteringLogic() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", 72),
-                new Bogie("A1", 60),
-                new Bogie("D1", 90)
-        );
+    void testCargo_SafeAssignment() {
+        GoodsBogie cylBogie = new CylindricalBogie("CB1");
 
-        List<Bogie> result = filterUsingLoop(bogies);
+        assertDoesNotThrow(() -> {
+            cylBogie.assignCargo(CargoType.PETROLEUM);
+        });
 
-        assertEquals(2, result.size()); // 72 & 90
+        assertEquals(CargoType.PETROLEUM, cylBogie.getCargo());
     }
 
-    // Stream filtering logic
+    // 2. Unsafe assignment handled (exception caught internally)
     @Test
-    void testStreamFilteringLogic() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", 72),
-                new Bogie("A1", 60),
-                new Bogie("D1", 90)
-        );
+    void testCargo_UnsafeAssignmentHandled() {
+        GoodsBogie rectBogie = new RectangularBogie("RB1");
 
-        List<Bogie> result = filterUsingStream(bogies);
+        // Capture console output
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(output));
 
-        assertEquals(2, result.size());
+        rectBogie.assignCargo(CargoType.PETROLEUM);
+
+        String result = output.toString();
+
+        assertTrue(result.contains("ERROR: Unsafe cargo! Petroleum cannot be loaded"));
     }
 
-    // Loop and Stream results match
+    // 3. Cargo not assigned after failure
     @Test
-    void testLoopAndStreamResultsMatch() {
-        List<Bogie> bogies = List.of(
-                new Bogie("S1", 72),
-                new Bogie("A1", 60),
-                new Bogie("D1", 90)
-        );
+    void testCargo_CargoNotAssignedAfterFailure() {
+        GoodsBogie rectBogie = new RectangularBogie("RB1");
 
-        List<Bogie> loopResult = filterUsingLoop(bogies);
-        List<Bogie> streamResult = filterUsingStream(bogies);
+        rectBogie.assignCargo(CargoType.PETROLEUM);
 
-        assertEquals(loopResult.size(), streamResult.size());
+        assertNull(rectBogie.getCargo());
     }
 
-    // Execution time measurement
+    // 4. Program continues after exception
     @Test
-    void testExecutionTimeMeasurement() {
-        List<Bogie> bogies = new ArrayList<>();
-        for (int i = 0; i < 1000; i++) {
-            bogies.add(new Bogie("B" + i, i % 100));
-        }
+    void testCargo_ProgramContinuesAfterException() {
+        GoodsBogie rectBogie = new RectangularBogie("RB1");
+        GoodsBogie cylBogie = new CylindricalBogie("CB1");
 
-        long start = System.nanoTime();
-        filterUsingLoop(bogies);
-        long end = System.nanoTime();
+        assertDoesNotThrow(() -> {
+            rectBogie.assignCargo(CargoType.PETROLEUM); // unsafe
+            cylBogie.assignCargo(CargoType.COAL);       // should still execute
+        });
 
-        long elapsed = end - start;
-
-        assertTrue(elapsed > 0);
+        assertEquals(CargoType.COAL, cylBogie.getCargo());
     }
 
-    // Large dataset processing
+    // 5. Finally block execution
     @Test
-    void testLargeDatasetProcessing() {
-        List<Bogie> bogies = new ArrayList<>();
+    void testCargo_FinallyBlockExecution() {
+        GoodsBogie rectBogie = new RectangularBogie("RB1");
 
-        for (int i = 0; i < 100000; i++) {
-            bogies.add(new Bogie("B" + i, (i % 2 == 0) ? 70 : 50));
-        }
+        // Capture console output
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(output));
 
-        List<Bogie> result = filterUsingStream(bogies);
+        rectBogie.assignCargo(CargoType.PETROLEUM);
 
-        // Half should be > 60 (i.e., 70)
-        assertEquals(50000, result.size());
+        String result = output.toString();
+
+        assertTrue(result.contains("Assignment attempt completed for RB1"));
     }
 }
