@@ -3,6 +3,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+// Train Consist Management App - UC20
 public class TrainConsistManagementApp {
 
     // Inner Bogie class with type attribute
@@ -16,8 +17,11 @@ public class TrainConsistManagementApp {
             this.type = type;
             this.capacity = capacity;
         }
+
+        return null; // Not found
     }
 
+    // Main method
     public static void main(String[] args) {
 
         System.out.println("==================================================");
@@ -54,6 +58,6 @@ public class TrainConsistManagementApp {
             }
         }
 
-        System.out.println("\nProgram continues...");
+        System.out.println("\nProgram continues after handling exceptions...");
     }
 }
